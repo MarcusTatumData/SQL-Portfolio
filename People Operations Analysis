@@ -1,0 +1,91 @@
+# This project surfaces insights about a company's People Operations data, specifically employee information, the departments they belong to, and their salaries
+
+# This analysis utilized the following dataset:
+
+-- Create 'departments' table
+CREATE TABLE departments (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(50)
+);
+
+-- Insert data into 'departments' table
+INSERT INTO departments (department_id, department_name) VALUES
+(1, 'Human Resources'),
+(2, 'Finance'),
+(3, 'Engineering'),
+(4, 'Marketing'),
+(5, 'Sales');
+
+-- Create 'employees' table
+CREATE TABLE employees (
+    employee_id INT PRIMARY KEY,
+    first_name VARCHAR(30),
+    last_name VARCHAR(30),
+    department_id INT,
+    hire_date DATE,
+    job_title VARCHAR(50),
+    FOREIGN KEY (department_id) REFERENCES departments(department_id)
+);
+
+-- Insert data into 'employees' table
+INSERT INTO employees (employee_id, first_name, last_name, department_id, hire_date, job_title) VALUES
+(101, 'Alice', 'Smith', 1, '2020-01-15', 'HR Specialist'),
+(102, 'Bob', 'Johnson', 2, '2019-03-22', 'Financial Analyst'),
+(103, 'Charlie', 'Brown', 3, '2021-07-10', 'Software Engineer'),
+(104, 'Daisy', 'Evans', 4, '2018-11-05', 'Marketing Coordinator'),
+(105, 'Ethan', 'Williams', 5, '2019-08-12', 'Sales Associate'),
+(106, 'Fiona', 'Clark', 1, '2020-02-20', 'HR Manager'),
+(107, 'George', 'Taylor', 2, '2021-01-08', 'Accountant'),
+(108, 'Hannah', 'Moore', 3, '2020-09-25', 'Data Scientist'),
+(109, 'Ian', 'Martinez', 4, '2021-04-17', 'Marketing Manager'),
+(110, 'Jane', 'Thomas', 5, '2022-01-02', 'Sales Manager');
+
+-- Create 'salaries' table
+CREATE TABLE salaries (
+    employee_id INT,
+    salary_amount DECIMAL(10, 2),
+    effective_date DATE,
+    FOREIGN KEY (employee_id) REFERENCES employees(employee_id)
+);
+
+-- Insert data into 'salaries' table
+INSERT INTO salaries (employee_id, salary_amount, effective_date) VALUES
+(101, 55000.00, '2020-01-15'),
+(102, 62000.00, '2019-03-22'),
+(103, 78000.00, '2021-07-10'),
+(104, 50000.00, '2018-11-05'),
+(105, 45000.00, '2019-08-12'),
+(106, 65000.00, '2020-02-20'),
+(107, 59000.00, '2021-01-08'),
+(108, 83000.00, '2020-09-25'),
+(109, 70000.00, '2021-04-17'),
+(110, 73000.00, '2022-01-02');
+
+# Analysis 
+
+-- Who are the 3 most tenured employees
+SELECT employee_id, first_name, last_name, hire_date
+FROM employees
+ORDER BY hire_date ASC
+LIMIT 3;
+
+-- Show the manager level employees and their salaries; do this with the LIKE function
+SELECT em.first_name, em.last_name, em.job_title, sal.salary_amount
+FROM employees em
+RIGHT JOIN salaries sal ON em.employee_id = sal.employee_id
+WHERE em.job_title LIKE('%Manager');
+
+-- Which department has the highest average salary?
+SELECT dep.department_name, AVG(sal.salary_amount)
+FROM departments dep
+LEFT JOIN employees em ON dep.department_id = em.department_id
+JOIN salaries sal ON em.employee_id = sal.employee_id
+GROUP BY dep.department_name
+ORDER BY AVG(sal.salary_amount) DESC
+LIMIT 1;
+
+-- Show the employees that were hired in 2020 and their salaries
+SELECT em.first_name, em.last_name, em.hire_date, sal.salary_amount
+FROM employees em
+JOIN salaries sal ON em.employee_id = sal.employee_id
+WHERE em.hire_date BETWEEN '2020-01-01' AND '2020-12-31';
